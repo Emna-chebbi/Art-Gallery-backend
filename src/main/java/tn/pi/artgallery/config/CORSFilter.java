@@ -12,7 +12,7 @@ public class CORSFilter implements ContainerResponseFilter {
     public void filter(ContainerRequestContext requestContext,
                        ContainerResponseContext responseContext) {
         responseContext.getHeaders().add(
-                "Access-Control-Allow-Origin", "*"); // Changed to allow all
+                "Access-Control-Allow-Origin", "*");
         responseContext.getHeaders().add(
                 "Access-Control-Allow-Credentials", "false"); // Changed to false
         responseContext.getHeaders().add(
