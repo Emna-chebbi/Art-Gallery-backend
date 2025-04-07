@@ -40,7 +40,12 @@ public class UserController {
             session.setAttribute("userId", foundUser.get().getId());
             session.setAttribute("role", foundUser.get().getRole());
 
-            return Response.ok().entity("{\"role\":\"" + foundUser.get().getRole() + "\"}").build();
+            User loggedInUser = foundUser.get();
+
+            // ✅ Retourner full_name, email et rôle dans la réponse
+            return Response.ok().entity("{\"full_name\":\"" + loggedInUser.getFullName() +
+                    "\", \"email\":\"" + loggedInUser.getEmail() +
+                    "\", \"role\":\"" + loggedInUser.getRole() + "\"}").build();
         }
         return Response.status(Response.Status.UNAUTHORIZED).entity("{\"error\":\"Invalid credentials\"}").build();
     }
@@ -55,19 +60,4 @@ public class UserController {
         return Response.ok().entity("{\"message\":\"Logged out successfully\"}").build();
     }
 
-    @GET
-    @Path("/me")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getCurrentUser(@Context HttpServletRequest request) {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("userId") == null) {
-            return Response.status(Response.Status.UNAUTHORIZED).entity("{\"error\":\"Not authenticated\"}").build();
-        }
-
-        Long userId = (Long) session.getAttribute("userId");
-        Optional<User> user = userService.findById(userId);
-
-        return user.map(value -> Response.ok(value).build())
-                .orElseGet(() -> Response.status(Response.Status.NOT_FOUND).entity("{\"error\":\"User not found\"}").build());
-    }
 }
