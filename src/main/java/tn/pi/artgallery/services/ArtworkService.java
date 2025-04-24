@@ -1,5 +1,7 @@
 package tn.pi.artgallery.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tn.pi.artgallery.entities.Artwork;
@@ -15,19 +17,18 @@ import java.util.Optional;
 public class ArtworkService {
 
     private final ArtworkRepository artworkRepository;
-    private final ArtistRepository artistRepository; // ✅ Inject ArtistRepository
+    private final ArtistRepository artistRepository;
 
     public ArtworkService(ArtworkRepository artworkRepository, ArtistRepository artistRepository) {
         this.artworkRepository = artworkRepository;
         this.artistRepository = artistRepository;
     }
 
-    // ✅ Retrieve all artworks
-    public List<Artwork> getAllArtworks() {
-        return artworkRepository.findAll();
+    // Updated to support pagination
+    public Page<Artwork> getAllArtworks(Pageable pageable) {
+        return artworkRepository.findAll(pageable);
     }
 
-    // ✅ Retrieve an artwork by ID
     public Optional<Artwork> getArtworkById(Long id) {
         return artworkRepository.findById(id);
     }
@@ -47,27 +48,30 @@ public class ArtworkService {
 
         return artworkRepository.save(artwork);
     }
-    // ✅ Delete an artwork by ID
+
     @Transactional
     public void deleteArtwork(Long id) {
         artworkRepository.deleteById(id);
     }
-    public List<Artwork> getAvailableArtworks() {
-        return artworkRepository.findByAvailableTrue();
+
+    // Updated to support pagination
+    public Page<Artwork> getAvailableArtworks(Pageable pageable) {
+        return artworkRepository.findByAvailable(true, pageable);
+    }
+
+    // Updated to support pagination
+    public Page<Artwork> getSoldArtworks(Pageable pageable) {
+        return artworkRepository.findByAvailable(false, pageable);
     }
 
     @Transactional
-    public void markAsSold(Long id) {
+    public Artwork toggleAvailability(Long id) {
         Artwork artwork = artworkRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Artwork not found with id: " + id));
-
-        if (!artwork.isAvailable()) {
-            throw new IllegalArgumentException("Artwork already marked as sold");
-        }
-
-        artwork.setAvailable(false);
-        artworkRepository.save(artwork);
+                .orElseThrow(() -> new IllegalArgumentException("Artwork not found"));
+        artwork.setAvailable(!artwork.isAvailable());
+        return artworkRepository.save(artwork);
     }
-
-
+    public long getArtworksCount() {
+        return artworkRepository.count();
+    }
 }

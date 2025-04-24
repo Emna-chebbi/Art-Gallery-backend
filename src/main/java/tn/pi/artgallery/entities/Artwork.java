@@ -100,4 +100,9 @@ public class Artwork {
     public void setImage(byte[] image) {
         this.image = image;
     }
+
+    public Object getImageUrl() {
+        return image;
+    }
+
 }

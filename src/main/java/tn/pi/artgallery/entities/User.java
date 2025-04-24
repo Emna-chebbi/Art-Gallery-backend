@@ -15,6 +15,7 @@ public class User {
     private String phone;
     private String address;
     private String role;
+    private String imageUrl;
 
     public User() {}
 
@@ -26,6 +27,7 @@ public class User {
         this.phone = phone;
         this.address = address;
         this.role = role;
+        this.imageUrl = "";
     }
 
     // Getters
@@ -56,7 +58,9 @@ public class User {
     public String getRole() {
         return role;
     }
-
+    public String getImageUrl() {
+        return imageUrl;
+    }
     // Setters
     public void setId(Long id) {
         this.id = id;
@@ -84,6 +88,9 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     // Méthode toString() optionnelle
