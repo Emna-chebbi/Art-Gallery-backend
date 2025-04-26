@@ -9,7 +9,8 @@ public class JerseyConfig extends ResourceConfig {
     public JerseyConfig() {
         register(tn.pi.artgallery.controller.UserController.class);
         register(tn.pi.artgallery.controller.EventController.class);
-        register(CORSFilter.class); // Ajouter le filtre CORS
+        register(tn.pi.artgallery.controller.EventPaymentController.class);
+        register(CORSFilter.class);
 
     }
 }

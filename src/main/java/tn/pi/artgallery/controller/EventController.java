@@ -1,4 +1,3 @@
-// EventController.java
 package tn.pi.artgallery.controller;
 
 import jakarta.ws.rs.*;
@@ -9,14 +8,24 @@ import org.springframework.stereotype.Component;
 import tn.pi.artgallery.entities.Event;
 import tn.pi.artgallery.entities.EventRegistration;
 import tn.pi.artgallery.services.EventService;
+import tn.pi.artgallery.services.EventRegistrationService;
 
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Path("/events")
 public class EventController {
+    private final EventService eventService;
+    private final EventRegistrationService eventRegistrationService;
+
     @Autowired
-    private EventService eventService;
+    public EventController(EventService eventService,
+                           EventRegistrationService eventRegistrationService) {
+        this.eventService = eventService;
+        this.eventRegistrationService = eventRegistrationService;
+    }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -69,15 +78,16 @@ public class EventController {
     @POST
     @Path("/{eventId}/register/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response registerForEvent(@PathParam("eventId") Long eventId, @PathParam("userId") Long userId) {
-        EventRegistration registration = eventService.registerForEvent(eventId, userId);
+    public Response registerForEvent(@PathParam("eventId") Long eventId,
+                                     @PathParam("userId") Long userId) {
+        EventRegistration registration = eventRegistrationService.registerForEvent(eventId, userId);
         return Response.ok(registration).build();
     }
 
     @DELETE
     @Path("/registrations/{id}")
     public Response cancelRegistration(@PathParam("id") Long id) {
-        eventService.cancelRegistration(id);
+        eventRegistrationService.cancelRegistration(id);
         return Response.noContent().build();
     }
 
@@ -85,15 +95,18 @@ public class EventController {
     @Path("/user/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserRegistrations(@PathParam("userId") Long userId) {
-        List<EventRegistration> registrations = eventService.getUserRegistrations(userId);
+        List<EventRegistration> registrations = eventRegistrationService.getUserRegistrations(userId);
         return Response.ok(registrations).build();
     }
 
     @GET
     @Path("/{eventId}/is-registered/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response isUserRegistered(@PathParam("eventId") Long eventId, @PathParam("userId") Long userId) {
-        boolean isRegistered = eventService.isUserRegistered(eventId, userId);
-        return Response.ok("{\"registered\":" + isRegistered + "}").build();
+    public Response isUserRegistered(@PathParam("eventId") Long eventId,
+                                     @PathParam("userId") Long userId) {
+        boolean isRegistered = eventRegistrationService.isUserRegistered(eventId, userId);
+        return Response.ok(new HashMap<String, Boolean>() {{
+            put("registered", isRegistered);
+        }}).build();
     }
 }
