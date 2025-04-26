@@ -8,8 +8,10 @@ import tn.pi.artgallery.entities.User;
 import tn.pi.artgallery.repository.EventRegistrationRepository;
 import tn.pi.artgallery.repository.EventRepository;
 import tn.pi.artgallery.repository.UserRepository;
+
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -24,6 +26,10 @@ public class EventRegistrationService {
     private UserRepository userRepository;
 
     public EventRegistration registerForEvent(Long eventId, Long userId) {
+        if (eventRegistrationRepository.existsByEventIdAndUserId(eventId, userId)) {
+            throw new RuntimeException("Already Registered");
+        }
+
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
         User user = userRepository.findById(userId)
@@ -32,11 +38,15 @@ public class EventRegistrationService {
         EventRegistration registration = new EventRegistration();
         registration.setEvent(event);
         registration.setUser(user);
-        registration.setPaymentStatus("pending");
-        registration.setTicketCode(UUID.randomUUID().toString());
         registration.setRegistrationDate(LocalDateTime.now());
+        registration.setPaymentStatus("UNPAID");
+        registration.setTicketCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
 
         return eventRegistrationRepository.save(registration);
+    }
+
+    public Optional<EventRegistration> findByEventIdAndUserId(Long eventId, Long userId) {
+        return eventRegistrationRepository.findByEventIdAndUserId(eventId, userId);
     }
 
     public void cancelRegistration(Long registrationId) {

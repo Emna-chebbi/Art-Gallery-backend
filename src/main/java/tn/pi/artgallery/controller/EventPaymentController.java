@@ -10,7 +10,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import tn.pi.artgallery.entities.EventPayment;
+import tn.pi.artgallery.entities.EventRegistration;
 import tn.pi.artgallery.services.EventPaymentService;
+import tn.pi.artgallery.services.EventRegistrationService;
 
 import java.util.List;
 import java.util.Map;
@@ -23,12 +25,15 @@ import java.util.stream.Collectors;
 public class EventPaymentController {
 
     private final EventPaymentService paymentService;
+    private final EventRegistrationService registrationService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public EventPaymentController(EventPaymentService paymentService,
+                                  EventRegistrationService registrationService,
                                   SimpMessagingTemplate messagingTemplate) {
         this.paymentService = paymentService;
+        this.registrationService = registrationService;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -36,23 +41,30 @@ public class EventPaymentController {
     @Path("/process")
     public Response processEventPayment(Map<String, Object> paymentRequest) {
         try {
-            Long registrationId = Long.valueOf(paymentRequest.get("registrationId").toString());
+            Long eventId = Long.valueOf(paymentRequest.get("eventId").toString());
+            Long userId = Long.valueOf(paymentRequest.get("userId").toString());
             String paymentMethod = paymentRequest.get("paymentMethod").toString();
             String cardLastFour = paymentRequest.get("cardLastFour").toString();
-            String transactionId = "EVT-" + System.currentTimeMillis(); // Generate transaction ID
 
+            // Find existing registration or create new one
+            EventRegistration registration = registrationService
+                    .findByEventIdAndUserId(eventId, userId)
+                    .orElseGet(() -> registrationService.registerForEvent(eventId, userId));
+
+            // Process payment
+            String transactionId = "EVT-" + System.currentTimeMillis();
             EventPayment payment = paymentService.processPayment(
-                    registrationId, paymentMethod, cardLastFour, transactionId);
+                    registration.getId(),
+                    paymentMethod,
+                    cardLastFour,
+                    transactionId
+            );
 
-            // Send WebSocket notification
-            sendPaymentNotification(payment);
-
-            return Response.ok()
-                    .entity(Map.of(
-                            "success", true,
-                            "payment", paymentToMap(payment)
-                    ))
-                    .build();
+            return Response.ok(Map.of(
+                    "success", true,
+                    "payment", paymentToMap(payment),
+                    "ticketCode", registration.getTicketCode()
+            )).build();
         } catch (Exception e) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(Map.of("error", e.getMessage()))

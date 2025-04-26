@@ -13,6 +13,7 @@ import tn.pi.artgallery.services.EventRegistrationService;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @Path("/events")
@@ -80,9 +81,26 @@ public class EventController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response registerForEvent(@PathParam("eventId") Long eventId,
                                      @PathParam("userId") Long userId) {
-        EventRegistration registration = eventRegistrationService.registerForEvent(eventId, userId);
-        return Response.ok(registration).build();
+        try {
+            EventRegistration registration = eventRegistrationService.registerForEvent(eventId, userId);
+            return Response.ok(registration).build();
+        } catch (RuntimeException e) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", e.getMessage()))
+                    .build();
+        }
     }
+
+    @GET
+    @Path("/{eventId}/registration/{userId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRegistration(@PathParam("eventId") Long eventId,
+                                    @PathParam("userId") Long userId) {
+        Optional<EventRegistration> registration = eventRegistrationService.findByEventIdAndUserId(eventId, userId);
+        return registration.map(reg -> Response.ok(reg).build())
+                .orElse(Response.status(Response.Status.NOT_FOUND).build());
+    }
+
 
     @DELETE
     @Path("/registrations/{id}")
