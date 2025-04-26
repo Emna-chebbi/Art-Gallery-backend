@@ -96,8 +96,8 @@ public class EventController {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRegistration(@PathParam("eventId") Long eventId,
                                     @PathParam("userId") Long userId) {
-        Optional<EventRegistration> registration = eventRegistrationService.findByEventIdAndUserId(eventId, userId);
-        return registration.map(reg -> Response.ok(reg).build())
+        return eventRegistrationService.findByEventIdAndUserId(eventId, userId)
+                .map(reg -> Response.ok(reg).build())
                 .orElse(Response.status(Response.Status.NOT_FOUND).build());
     }
 
@@ -110,7 +110,7 @@ public class EventController {
     }
 
     @GET
-    @Path("/user/{userId}")
+    @Path("/user/{userId}/registrations")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUserRegistrations(@PathParam("userId") Long userId) {
         List<EventRegistration> registrations = eventRegistrationService.getUserRegistrations(userId);
