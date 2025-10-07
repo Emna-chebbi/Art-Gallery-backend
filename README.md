@@ -28,5 +28,6 @@ It provides RESTful and GraphQL APIs for managing **art auctions**, **event plan
 
 ---
 
-git clone https://github.com/Emna-chebbi/Art-gallery-backend.git
-cd Art-gallery-backend
+### Related Repository
+- [Backend Repository](https://github.com/Emna-chebbi/Art-Gallery-frontend)
+
